@@ -38,20 +38,20 @@ class ExperimentTracker:
         ax[0][0].plot(epochs, self.history["test_loss"], label="Test", color="red")
         ax[0][0].fill_between(epochs, self.history["train_loss"], self.history["test_loss"], color='gray', alpha=0.3, label='Gap', interpolate=True)
         ax[0][0].set_title(f"Test/TrainLoss - {self.exp_name}")
-        ax[0][0].set_ylim(0, 1)
+        ax[0][0].set_ylim(0, 0.8)
         ax[0][0].legend()
 
         
         #Accuracy
         ax[0][1].plot(epochs, self.history["test_acc"], label="Accuracy", color="green")
         ax[0][1].set_title(f"Accuracy (correct/total) - {self.exp_name}")
-        ax[0][1].set_ylim(0, 1)
+        ax[0][1].set_ylim(0.2, 1)
         ax[0][1].legend()
 
         #Generalization Gap
         ax[1][0].plot(epochs, self.history["gen_gap"], label="Gap", color="purple")
         ax[1][0].set_title(f"Generalization Gap (test_loss - train_loss) - {self.exp_name}")
-        ax[1][0].axhline(y=0, color='black', linestyle='--', linewidth=1.5, label="Ideal (0 Gap)")
+        ax[1][0].axhline(y=0, color='black', linestyle='--', linewidth=1.5)
         gen_gap = self.history["gen_gap"]
         ax[1][0].fill_between(epochs, gen_gap, 0, where=[g > 0 for g in gen_gap], 
                               color='red', alpha=0.2, label="Overfitting", interpolate=True)
@@ -132,7 +132,7 @@ class ExperimentTracker:
             ax_fail.axis('off')
 
 
-        plt.savefig(f"reports/experiments/{self.exp_name}b.png")
+        plt.savefig(f"reports/experiments/{self.exp_name}.png")
         plt.close()
         
         return
@@ -142,4 +142,33 @@ class ExperimentTracker:
         return self.history
 
 def plot_project_master_report(project_name, all_results):
+    os.makedirs("reports/projects", exist_ok=True)
+
+    fig, ax = plt.subplots(2,2, figsize=(20,10))
+    for exp_name, history in all_results.items():
+        epochs = range(1, len(history["test_loss"]) + 1)
+        
+        ax[0][0].plot(epochs, history["test_loss"], label=exp_name)
+        ax[0][1].plot(epochs, history["test_acc"], label=exp_name)
+        ax[1][0].plot(epochs, history["gen_gap"], label=exp_name)
+
+    # Test loss
+    ax[0][0].set_title(f"Test Loss")
+    ax[0][0].set_ylim(0, 0.8)
+    ax[0][0].legend()
+    
+    #Accuracy
+    ax[0][1].set_title(f"Accuracy")
+    ax[0][1].set_ylim(0.2, 1)
+    ax[0][1].legend()
+
+    #Generalization Gap
+
+    ax[1][0].set_title(f"Generalization Gap")
+    ax[1][0].axhline(y=0, color='black', linestyle='--', linewidth=1.5)
+    ax[1][0].set_ylim(-0.5, 0.5)
+    ax[1][0].legend()
+
+    plt.savefig(f"reports/projects/{project_name}.png")
+    plt.close()
     return
