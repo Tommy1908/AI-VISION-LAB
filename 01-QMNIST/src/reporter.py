@@ -47,6 +47,7 @@ class ExperimentTracker:
         epochs = range(1, len(self.history["train_loss"]) + 1)
 
         fig, ax = plt.subplots(2,2, figsize=(20,10))
+        fig.suptitle(f"Experiment Report: {self.exp_name}", fontsize=20, fontweight='bold', y=0.95)
 
         #Train/Test Loss
         ax[0][0].plot(epochs, self.history["train_loss"], label="Train", color="blue")
@@ -90,7 +91,6 @@ class ExperimentTracker:
         ### Text font config
         header_font = {'fontsize': 13, 'weight': 'bold', 'family': 'sans-serif'}
         body_font = {'fontsize': 10, 'family': 'monospace', 'color': '#333333'}
-
 
         ### Left Column ###
         y_pos = 0.95
@@ -164,14 +164,34 @@ class ExperimentTracker:
 
 def plot_project_master_report(project_name, all_results):
     os.makedirs("reports/projects", exist_ok=True)
-
     fig, ax = plt.subplots(2,2, figsize=(20,10))
+    fig.suptitle(f"Project Report: {project_name.upper()}", fontsize=20, fontweight='bold', y=0.95)
+
+    # Best results tracking
+    best_overall_acc = -1
+    best_acc_exp = ""
+        
+    best_gen_val = float('inf')
+    best_gen_exp = ""
+
     for exp_name, history in all_results.items():
         epochs = range(1, len(history["test_loss"]) + 1)
         
         ax[0][0].plot(epochs, history["test_loss"], label=exp_name)
         ax[0][1].plot(epochs, history["test_acc"], label=exp_name)
         ax[1][0].plot(epochs, history["gen_gap"], label=exp_name)
+
+        # Accuracy
+        current_acc = history["test_acc"][-1] #We care abouth the final result
+        if current_acc > best_overall_acc:
+            best_overall_acc = current_acc
+            best_acc_exp = exp_name
+                        
+        # Generalization gap
+        current_gap = history["gen_gap"][-1] # Final generalization gap
+        if current_gap < best_gen_val:
+            best_gen_val = current_gap
+            best_gen_exp = exp_name
 
     # Test loss
     ax[0][0].set_title(f"Test Loss")
@@ -192,6 +212,34 @@ def plot_project_master_report(project_name, all_results):
     ax[1][0].legend()
     ax[1][0].grid(linestyle='--', alpha=0.5)
 
-    plt.savefig(f"reports/projects/{project_name}.png")
+    #Dashboard/overwiew
+    ax[1][1].axis('off')
+
+    ### Text font config
+    header_font = {'fontsize': 13, 'weight': 'bold', 'family': 'sans-serif'}
+    body_font = {'fontsize': 10, 'family': 'monospace', 'color': '#333333'}
+
+    y_pos = 0.95
+    x_pos = 0.05
+
+    # Overall stats
+    ax[1][1].text(x_pos, y_pos, f"PROJECT MASTER REPORT: {project_name.upper()}", **header_font)
+    y_pos -= 0.08
+
+    ax[1][1].text(x_pos, y_pos, "STATISTICS", **header_font)
+    y_pos -= 0.08
+    ax[1][1].text(x_pos, y_pos, f"Total Experiments: {len(all_results)}", **body_font)
+    y_pos -= 0.05
+
+    ax[1][1].text(x_pos, y_pos, "Best Accuracy:", **body_font)
+    ax[1][1].text(x_pos + 0.2, y_pos, f"Acc: {best_overall_acc:.4f} ({best_acc_exp})", **body_font)
+    y_pos -= 0.05
+
+    ax[1][1].text(x_pos, y_pos, "Best Generalizer:", **body_font)
+    ax[1][1].text(x_pos + 0.2, y_pos, f"Gap: {best_gen_val:.4f} ({best_gen_exp})", **body_font)
+    y_pos -= 0.12
+    
+    plt.savefig(f"reports/projects/{project_name}v6.png")
+    print(f"Report for project '{project_name}' saved at 'reports/projects/{project_name}v5.png'")
     plt.close()
     return
