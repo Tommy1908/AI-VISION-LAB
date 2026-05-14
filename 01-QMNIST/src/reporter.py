@@ -43,7 +43,7 @@ class ExperimentTracker:
         return " ".join(parts)
 
     def save_experiment_reports(self):
-        os.makedirs("reports/experiments", exist_ok=True)
+        os.makedirs(f"reports/experiments/{self.config['project_name']}", exist_ok=True)
         epochs = range(1, len(self.history["train_loss"]) + 1)
 
         fig, ax = plt.subplots(2,2, figsize=(20,10))
@@ -152,7 +152,7 @@ class ExperimentTracker:
             ax_fail.axis('off')
 
 
-        plt.savefig(f"reports/experiments/{self.exp_name}.png")
+        plt.savefig(f"reports/experiments/{self.config['project_name']}/{self.exp_name}.png")
         print(f"Report for experiment '{self.exp_name}' saved at 'reports/experiments/{self.exp_name}.png'")
         plt.close()
         
@@ -239,7 +239,7 @@ def plot_project_master_report(project_name, all_results):
     ax[1][1].text(x_pos + 0.2, y_pos, f"Gap: {best_gen_val:.4f} ({best_gen_exp})", **body_font)
     y_pos -= 0.12
     
-    plt.savefig(f"reports/projects/{project_name}v6.png")
-    print(f"Report for project '{project_name}' saved at 'reports/projects/{project_name}v5.png'")
+    plt.savefig(f"reports/projects/{project_name}.png")
+    print(f"Report for project '{project_name}' saved at 'reports/projects/{project_name}.png'")
     plt.close()
     return
