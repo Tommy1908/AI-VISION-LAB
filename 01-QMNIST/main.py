@@ -32,5 +32,4 @@ if __name__ == "__main__":
 
     # Generate reports for each project
     for project_name, experiments_data in results_by_project.items():
-        print(f"\n--- Generando reporte para el proyecto: {project_name} ---")
         plot_project_master_report(project_name, experiments_data)
