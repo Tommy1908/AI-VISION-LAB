@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import time
 
 class Trainer:
     def __init__(self, model, config, tracker=None):
@@ -13,18 +14,23 @@ class Trainer:
         self.device = config["device"]
 
     def fit(self, train_loader, test_loader):
-
         for epoch in range(1, self.config["epochs"] + 1):
+            #Train
+            start_time = time.perf_counter()
             train_loss, _ = run_epoch(
                 train_loader, self.model, self.loss_fn, self.optimizer, self.device
             )
+            end_time = time.perf_counter()
+            train_duration = end_time - start_time
+
             #Run with test to see each epoch performance, but without training
             test_loss, test_acc = run_epoch(
                 test_loader, self.model, self.loss_fn, device=self.device, tracker=(self.tracker if epoch == self.config["epochs"] else None)
             )
-            #tracker.log_epoch(epoch, train_loss, test_loss, test_acc)
+
             if self.tracker:
                 self.tracker.log_epoch(train_loss, test_loss, test_acc)
+                self.tracker.log_training_time(train_duration)
 
 
             print(f"Epoch {epoch} | Train Loss: {train_loss:.4f} "

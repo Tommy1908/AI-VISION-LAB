@@ -8,6 +8,7 @@ class ExperimentTracker:
         self.config = config
         self.history = {"train_loss": [], "test_loss": [], "test_acc": [], "gen_gap": []}
         self.samples = {"success": [], "failure": []}
+        self.training_time = 0
 
     def log_epoch(self, train_loss, test_loss, test_acc):
         gap = test_loss - train_loss
@@ -27,6 +28,20 @@ class ExperimentTracker:
                 "pred": pred, 
             })
 
+    def log_training_time(self, seconds):
+        self.training_time += seconds
+    
+    def __format_time(self, seconds):
+        h = int(seconds // 3600)
+        m = int((seconds % 3600) // 60)
+        s = int(seconds % 60)
+
+        parts = []
+        if h > 0: parts.append(f"{h}h")
+        if m > 0 or h > 0: parts.append(f"{m}m")
+        parts.append(f"{s}s")
+        return " ".join(parts)
+
     def save_experiment_reports(self):
         os.makedirs("reports/experiments", exist_ok=True)
         epochs = range(1, len(self.history["train_loss"]) + 1)
@@ -40,13 +55,15 @@ class ExperimentTracker:
         ax[0][0].set_title(f"Test/TrainLoss - {self.exp_name}")
         ax[0][0].set_ylim(0, 0.8)
         ax[0][0].legend()
-
+        ax[0][0].grid(linestyle='--', alpha=0.5)
         
         #Accuracy
         ax[0][1].plot(epochs, self.history["test_acc"], label="Accuracy", color="green")
         ax[0][1].set_title(f"Accuracy (correct/total) - {self.exp_name}")
         ax[0][1].set_ylim(0.2, 1)
         ax[0][1].legend()
+        ax[0][1].grid(linestyle='--', alpha=0.5)
+
 
         #Generalization Gap
         ax[1][0].plot(epochs, self.history["gen_gap"], label="Gap", color="purple")
@@ -59,6 +76,8 @@ class ExperimentTracker:
                               color='green', alpha=0.2, label="Underfitting / Dropout", interpolate=True)
         ax[1][0].set_ylim(-0.5, 0.5)
         ax[1][0].legend()
+        ax[1][0].grid(linestyle='--', alpha=0.5)
+
 
         #Dashboard/overwiew
         ax[1][1].axis('off')
@@ -82,7 +101,9 @@ class ExperimentTracker:
         ax[1][1].text(x_left, y_pos, f"Best Accuracy: {best_acc:.4f} (Ep {best_epoch})", **body_font)
         y_pos -= 0.05
         ax[1][1].text(x_left, y_pos, f"Min Test Loss: {min_test_loss:.4f}", **body_font)
-        y_pos -= 0.12 # Salto de sección
+        y_pos -= 0.05
+        ax[1][1].text(x_left, y_pos, f"Training Time: {self.__format_time(self.training_time)}", **body_font)
+        y_pos -= 0.12
         
         ax[1][1].text(x_left, y_pos, "HYPERPARAMETERS", **header_font)
         y_pos -= 0.08
@@ -90,7 +111,7 @@ class ExperimentTracker:
         for k, v in self.config.items():
             text_to_wrap = f"{k:<15}: {v}"
 
-            wrapped_lines = textwrap.wrap(text_to_wrap, width=50, subsequent_indent=" " * 5)
+            wrapped_lines = textwrap.wrap(text_to_wrap, width=40, subsequent_indent=" " * 3)
 
             for line in wrapped_lines:
                 ax[1][1].text(x_left, y_pos, line, **body_font)
@@ -98,7 +119,6 @@ class ExperimentTracker:
 
 
         ### Right Column ###
-
         y_pos = 0.95
         x_right = 0.55
         ax[1][1].text(x_right, y_pos, "PREDICTION SAMPLES", **header_font)
@@ -133,6 +153,7 @@ class ExperimentTracker:
 
 
         plt.savefig(f"reports/experiments/{self.exp_name}.png")
+        print(f"Report for experiment '{self.exp_name}' saved at 'reports/experiments/{self.exp_name}.png'")
         plt.close()
         
         return
@@ -156,18 +177,20 @@ def plot_project_master_report(project_name, all_results):
     ax[0][0].set_title(f"Test Loss")
     ax[0][0].set_ylim(0, 0.8)
     ax[0][0].legend()
+    ax[0][0].grid(linestyle='--', alpha=0.5)
     
     #Accuracy
     ax[0][1].set_title(f"Accuracy")
     ax[0][1].set_ylim(0.2, 1)
     ax[0][1].legend()
+    ax[0][1].grid(linestyle='--', alpha=0.5)
 
     #Generalization Gap
-
     ax[1][0].set_title(f"Generalization Gap")
     ax[1][0].axhline(y=0, color='black', linestyle='--', linewidth=1.5)
     ax[1][0].set_ylim(-0.5, 0.5)
     ax[1][0].legend()
+    ax[1][0].grid(linestyle='--', alpha=0.5)
 
     plt.savefig(f"reports/projects/{project_name}.png")
     plt.close()
