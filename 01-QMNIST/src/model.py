@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 
 ACTIVATION_MAP = {
         "relu": nn.ReLU,
@@ -13,6 +14,8 @@ class QMNIST_MLP(nn.Module):
                 activation:list[str]=["ReLu"]
                 ) -> None:
         super().__init__()
+        self.hidden_layers = hidden_layers
+        self.activation = activation
 
         #Validate and convert activation
         activations_names:list[str] = activation
@@ -38,3 +41,22 @@ class QMNIST_MLP(nn.Module):
 
     def forward(self, x):
         return self.net(x)
+    
+    def save_model(self, path):
+        checkpoint = {
+            "state_dict": self.state_dict(),
+            "hidden_layers": self.hidden_layers,
+            "activation": self.activation
+        }
+        torch.save(checkpoint, path)
+
+    @classmethod 
+    def load_model(cls, path):
+        checkpoint = torch.load(path)
+        model = cls(
+            hidden_layers=checkpoint['hidden_layers'],
+            activation=checkpoint['activation']
+        )
+        model.load_state_dict(checkpoint['state_dict'])
+        model.eval()
+        return model
