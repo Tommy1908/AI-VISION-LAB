@@ -1,5 +1,6 @@
 import os
 import textwrap
+import wandb
 import matplotlib.pyplot as plt
 
 class ExperimentTracker:
@@ -10,6 +11,14 @@ class ExperimentTracker:
         self.samples = {"success": [], "failure": []}
         self.training_time = 0
 
+        wandb.init(
+            project=config["project_name"],
+            name=exp_name,
+            config=config,
+            reinit=True,
+            mode="offline" # Manual sync (wandb sync wandb/offline-run-*)
+        )
+
     def log_epoch(self, train_loss, test_loss, test_acc):
         gap = test_loss - train_loss
         
@@ -17,6 +26,13 @@ class ExperimentTracker:
         self.history["test_loss"].append(test_loss)
         self.history["test_acc"].append(test_acc)
         self.history["gen_gap"].append(gap)
+
+        wandb.log({
+            "train/loss": train_loss,
+            "test/loss": test_loss,
+            "test/accuracy": test_acc,
+            "generalization_gap": gap
+        })
 
     def log_samples(self, img, label, probs,pred, is_success):
         category = "success" if is_success else "failure"
@@ -54,14 +70,14 @@ class ExperimentTracker:
         ax[0][0].plot(epochs, self.history["test_loss"], label="Test", color="red")
         ax[0][0].fill_between(epochs, self.history["train_loss"], self.history["test_loss"], color='gray', alpha=0.3, label='Gap', interpolate=True)
         ax[0][0].set_title(f"Test/TrainLoss - {self.exp_name}")
-        ax[0][0].set_ylim(0, 0.8)
+        ax[0][0].set_ylim(0, 1)
         ax[0][0].legend()
         ax[0][0].grid(linestyle='--', alpha=0.5)
         
         #Accuracy
         ax[0][1].plot(epochs, self.history["test_acc"], label="Accuracy", color="green")
         ax[0][1].set_title(f"Accuracy (correct/total) - {self.exp_name}")
-        ax[0][1].set_ylim(0.2, 1)
+        ax[0][1].set_ylim(0, 1)
         ax[0][1].legend()
         ax[0][1].grid(linestyle='--', alpha=0.5)
 
@@ -160,6 +176,7 @@ class ExperimentTracker:
 
     def finish(self):
         self.save_experiment_reports()
+        wandb.finish()
         return self.history
 
 def plot_project_master_report(project_name, all_results):
@@ -195,13 +212,13 @@ def plot_project_master_report(project_name, all_results):
 
     # Test loss
     ax[0][0].set_title(f"Test Loss")
-    ax[0][0].set_ylim(0, 0.8)
+    ax[0][0].set_ylim(0, 1)
     ax[0][0].legend()
     ax[0][0].grid(linestyle='--', alpha=0.5)
     
     #Accuracy
     ax[0][1].set_title(f"Accuracy")
-    ax[0][1].set_ylim(0.2, 1)
+    ax[0][1].set_ylim(0, 1)
     ax[0][1].legend()
     ax[0][1].grid(linestyle='--', alpha=0.5)
 
