@@ -219,6 +219,5 @@ __marimo__/
 
 # Project
 data/
-reports/
 wandb/
 saved_models/

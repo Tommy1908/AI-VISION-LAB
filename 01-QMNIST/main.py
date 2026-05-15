@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import os
 from configs.experiments import EXPERIMENTS
 from src.data import get_dataloaders
 from src.model import QMNIST_MLP
@@ -14,6 +15,9 @@ def run_experiment(exp_name, config):
     
     tracker = ExperimentTracker(exp_name, config)
     Trainer(model,config, tracker).fit(train_loader, test_loader)
+
+    os.makedirs("saved_models/", exist_ok=True)
+    model.save_model(f"saved_models/{exp_name}.pth")
 
     return tracker.finish()
 
