@@ -70,14 +70,14 @@ class ExperimentTracker:
         ax[0][0].plot(epochs, self.history["test_loss"], label="Test", color="red")
         ax[0][0].fill_between(epochs, self.history["train_loss"], self.history["test_loss"], color='gray', alpha=0.3, label='Gap', interpolate=True)
         ax[0][0].set_title(f"Test/TrainLoss - {self.exp_name}")
-        ax[0][0].set_ylim(0, 1)
+        #ax[0][0].set_ylim(0, 1)
         ax[0][0].legend()
         ax[0][0].grid(linestyle='--', alpha=0.5)
         
         #Accuracy
         ax[0][1].plot(epochs, self.history["test_acc"], label="Accuracy", color="green")
         ax[0][1].set_title(f"Accuracy (correct/total) - {self.exp_name}")
-        ax[0][1].set_ylim(0, 1)
+        #ax[0][1].set_ylim(0, 1)
         ax[0][1].legend()
         ax[0][1].grid(linestyle='--', alpha=0.5)
 
@@ -91,7 +91,7 @@ class ExperimentTracker:
                               color='red', alpha=0.2, label="Overfitting", interpolate=True)
         ax[1][0].fill_between(epochs, gen_gap, 0, where=[g <= 0.0 for g in gen_gap], 
                               color='green', alpha=0.2, label="Underfitting / Dropout", interpolate=True)
-        ax[1][0].set_ylim(-0.5, 0.5)
+        #ax[1][0].set_ylim(-0.5, 0.5)
         ax[1][0].legend()
         ax[1][0].grid(linestyle='--', alpha=0.5)
 
@@ -168,7 +168,11 @@ class ExperimentTracker:
             ax_fail.axis('off')
 
 
-        plt.savefig(f"reports/experiments/{self.config['project_name']}/{self.exp_name}.png")
+        plt.savefig(
+            f"reports/experiments/{self.config['project_name']}/{self.exp_name}.png",
+            dpi=300,
+            bbox_inches='tight',
+            )
         print(f"Report for experiment '{self.exp_name}' saved at 'reports/experiments/{self.exp_name}.png'")
         plt.close()
         
@@ -256,7 +260,11 @@ def plot_project_master_report(project_name, all_results):
     ax[1][1].text(x_pos + 0.2, y_pos, f"Gap: {best_gen_val:.4f} ({best_gen_exp})", **body_font)
     y_pos -= 0.12
     
-    plt.savefig(f"reports/projects/{project_name}.png")
+    plt.savefig(
+        f"reports/projects/{project_name}.png",
+        dpi=300,
+        bbox_inches='tight',
+        )
     print(f"Report for project '{project_name}' saved at 'reports/projects/{project_name}.png'")
     plt.close()
     return
